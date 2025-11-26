@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import ParticleAnimation from "@/components/animations/ParticleAnimation";
-import Button from "@/components/ui/Button";
+import ParticleAnimation from "@/app/frontend/components/animations/ParticleAnimation";
+import Button from "@/app/frontend/components/ui/Button";
 
 /**
  * SignUpPage component
@@ -14,8 +14,16 @@ import Button from "@/components/ui/Button";
  */
 export default function SignUpPage() {
   const router = useRouter();
-  const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
-  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean; confirmPassword?: boolean }>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+  const [touched, setTouched] = useState<{
+    email?: boolean;
+    password?: boolean;
+    confirmPassword?: boolean;
+  }>({});
 
   function validateEmail(email: string): string | undefined {
     if (!email) {
@@ -37,7 +45,10 @@ export default function SignUpPage() {
     return undefined;
   }
 
-  function validateConfirmPassword(password: string, confirmPassword: string): string | undefined {
+  function validateConfirmPassword(
+    password: string,
+    confirmPassword: string
+  ): string | undefined {
     if (!confirmPassword) {
       return "Please confirm your password";
     }
@@ -47,20 +58,31 @@ export default function SignUpPage() {
     return undefined;
   }
 
-  function handleBlur(field: "email" | "password" | "confirmPassword", value: string, form?: HTMLFormElement) {
+  function handleBlur(
+    field: "email" | "password" | "confirmPassword",
+    value: string,
+    form?: HTMLFormElement
+  ) {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    
+
     if (field === "email") {
       setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
     } else if (field === "password") {
       setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
     } else if (field === "confirmPassword" && form) {
       const password = new FormData(form).get("password") as string;
-      setErrors((prev) => ({ ...prev, confirmPassword: validateConfirmPassword(password, value) }));
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: validateConfirmPassword(password, value),
+      }));
     }
   }
 
-  function handleChange(field: "email" | "password" | "confirmPassword", value: string, form?: HTMLFormElement) {
+  function handleChange(
+    field: "email" | "password" | "confirmPassword",
+    value: string,
+    form?: HTMLFormElement
+  ) {
     if (touched[field]) {
       if (field === "email") {
         setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
@@ -68,7 +90,10 @@ export default function SignUpPage() {
         setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
       } else if (field === "confirmPassword" && form) {
         const password = new FormData(form).get("password") as string;
-        setErrors((prev) => ({ ...prev, confirmPassword: validateConfirmPassword(password, value) }));
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: validateConfirmPassword(password, value),
+        }));
       }
     }
   }
@@ -84,10 +109,17 @@ export default function SignUpPage() {
     // Validate all fields
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    const confirmPasswordError = validateConfirmPassword(password, confirmPassword);
+    const confirmPasswordError = validateConfirmPassword(
+      password,
+      confirmPassword
+    );
 
     setTouched({ email: true, password: true, confirmPassword: true });
-    setErrors({ email: emailError, password: passwordError, confirmPassword: confirmPasswordError });
+    setErrors({
+      email: emailError,
+      password: passwordError,
+      confirmPassword: confirmPasswordError,
+    });
 
     // If there are errors, don't submit
     if (emailError || passwordError || confirmPasswordError) {
@@ -95,7 +127,7 @@ export default function SignUpPage() {
     }
 
     console.log("Sign up data:", Object.fromEntries(data.entries()));
-    
+
     // Set cookie
     document.cookie = "isAuthenticated=true; path=/; max-age=86400";
     router.push("/frontend/pages/user/dashboard");
@@ -145,8 +177,17 @@ export default function SignUpPage() {
               </label>
               {errors.email && touched.email && (
                 <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {errors.email}
                 </p>
@@ -180,8 +221,17 @@ export default function SignUpPage() {
               </label>
               {errors.password && touched.password && (
                 <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {errors.password}
                 </p>
@@ -195,8 +245,20 @@ export default function SignUpPage() {
                 name="confirmPassword"
                 type="password"
                 placeholder="Confirm your password"
-                onBlur={(e) => handleBlur("confirmPassword", e.target.value, e.target.form || undefined)}
-                onChange={(e) => handleChange("confirmPassword", e.target.value, e.target.form || undefined)}
+                onBlur={(e) =>
+                  handleBlur(
+                    "confirmPassword",
+                    e.target.value,
+                    e.target.form || undefined
+                  )
+                }
+                onChange={(e) =>
+                  handleChange(
+                    "confirmPassword",
+                    e.target.value,
+                    e.target.form || undefined
+                  )
+                }
                 className={`peer w-full border rounded-lg bg-transparent px-4 pt-5 pb-3 text-gray-900 focus:outline-none transition-all duration-300 ease-out placeholder:text-transparent focus:placeholder:text-gray-400 ${
                   errors.confirmPassword && touched.confirmPassword
                     ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
@@ -215,8 +277,17 @@ export default function SignUpPage() {
               </label>
               {errors.confirmPassword && touched.confirmPassword && (
                 <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {errors.confirmPassword}
                 </p>
