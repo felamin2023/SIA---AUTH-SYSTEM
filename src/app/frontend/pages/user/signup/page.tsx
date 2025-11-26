@@ -3,17 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import ParticleAnimation from "@/app/frontend/components/animations/ParticleAnimation";
 import Button from "@/app/frontend/components/ui/Button";
+import LinearParticles from "@/app/frontend/components/animations/LinearParticles";
 
-/**
- * SignUpPage component
- * - Clean, modern white aesthetics.
- * - Floating label inputs.
- * - Particle animation on the right.
- */
 export default function SignUpPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -98,7 +93,7 @@ export default function SignUpPage() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -126,200 +121,199 @@ export default function SignUpPage() {
       return;
     }
 
+    setIsLoading(true);
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     console.log("Sign up data:", Object.fromEntries(data.entries()));
 
     // Set cookie
     document.cookie = "isAuthenticated=true; path=/; max-age=86400";
     router.push("/frontend/pages/user/dashboard");
+    setIsLoading(false);
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-linear-to-br from-gray-50 to-white">
-      {/* Form Section - Left */}
-      <div className="flex-1 flex items-center justify-center px-6 sm:px-12 lg:px-16 py-12 md:py-0 z-10">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 sm:p-10 transition-all duration-500 hover:shadow-2xl hover:shadow-gray-300/40">
-          {/* Header Section */}
-          <div className="mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 tracking-tight">
-              Create account
-            </h1>
-            <p className="text-base text-gray-500">
-              Enter your details to get started
-            </p>
-          </div>
-
-          {/* Form Section */}
-          <form onSubmit={handleSubmit} className="space-y-8" noValidate>
-            {/* Email Input with Floating Label */}
-            <div className="relative group">
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Enter your email"
-                onBlur={(e) => handleBlur("email", e.target.value)}
-                onChange={(e) => handleChange("email", e.target.value)}
-                className={`peer w-full border rounded-lg bg-transparent px-4 pt-5 pb-3 text-gray-900 focus:outline-none transition-all duration-300 ease-out placeholder:text-transparent focus:placeholder:text-gray-400 ${
-                  errors.email && touched.email
-                    ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 group-hover:border-gray-400"
-                }`}
-              />
-              <label
-                htmlFor="email"
-                className={`absolute left-3 px-1 bg-white transition-all duration-300 ease-out pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:bg-white font-medium ${
-                  errors.email && touched.email
-                    ? "-top-2.5 text-xs text-red-500 peer-focus:text-red-500 bg-white"
-                    : "-top-2.5 text-xs text-gray-500 peer-placeholder-shown:text-gray-400 peer-focus:text-blue-500"
-                }`}
-              >
-                Email
-              </label>
-              {errors.email && touched.email && (
-                <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            {/* Password Input with Floating Label */}
-            <div className="relative group">
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                onBlur={(e) => handleBlur("password", e.target.value)}
-                onChange={(e) => handleChange("password", e.target.value)}
-                className={`peer w-full border rounded-lg bg-transparent px-4 pt-5 pb-3 text-gray-900 focus:outline-none transition-all duration-300 ease-out placeholder:text-transparent focus:placeholder:text-gray-400 ${
-                  errors.password && touched.password
-                    ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 group-hover:border-gray-400"
-                }`}
-              />
-              <label
-                htmlFor="password"
-                className={`absolute left-3 px-1 bg-white transition-all duration-300 ease-out pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:bg-white font-medium ${
-                  errors.password && touched.password
-                    ? "-top-2.5 text-xs text-red-500 peer-focus:text-red-500 bg-white"
-                    : "-top-2.5 text-xs text-gray-500 peer-placeholder-shown:text-gray-400 peer-focus:text-blue-500"
-                }`}
-              >
-                Password
-              </label>
-              {errors.password && touched.password && (
-                <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.password}
-                </p>
-              )}
-            </div>
-
-            {/* Confirm Password Input with Floating Label */}
-            <div className="relative group">
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Confirm your password"
-                onBlur={(e) =>
-                  handleBlur(
-                    "confirmPassword",
-                    e.target.value,
-                    e.target.form || undefined
-                  )
-                }
-                onChange={(e) =>
-                  handleChange(
-                    "confirmPassword",
-                    e.target.value,
-                    e.target.form || undefined
-                  )
-                }
-                className={`peer w-full border rounded-lg bg-transparent px-4 pt-5 pb-3 text-gray-900 focus:outline-none transition-all duration-300 ease-out placeholder:text-transparent focus:placeholder:text-gray-400 ${
-                  errors.confirmPassword && touched.confirmPassword
-                    ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 group-hover:border-gray-400"
-                }`}
-              />
-              <label
-                htmlFor="confirmPassword"
-                className={`absolute left-3 px-1 bg-white transition-all duration-300 ease-out pointer-events-none peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:bg-white font-medium ${
-                  errors.confirmPassword && touched.confirmPassword
-                    ? "-top-2.5 text-xs text-red-500 peer-focus:text-red-500 bg-white"
-                    : "-top-2.5 text-xs text-gray-500 peer-placeholder-shown:text-gray-400 peer-focus:text-blue-500"
-                }`}
-              >
-                Confirm Password
-              </label>
-              {errors.confirmPassword && touched.confirmPassword && (
-                <p className="mt-2 text-sm text-red-500 flex items-center gap-1.5 animate-pulse">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            {/* Sign Up Button */}
-            <div className="pt-6">
-              <Button type="submit" variant="primary" fullWidth>
-                Create Account
-              </Button>
-            </div>
-          </form>
-
-          {/* Footer Section */}
-          <div className="mt-10 text-center">
-            <p className="text-sm text-gray-500">
-              Already have an account?{" "}
-              <Link
-                href="/user/signin"
-                className="font-semibold text-blue-500 hover:text-blue-600 transition-colors duration-300 hover:underline underline-offset-2 cursor-pointer"
-              >
-                Sign In
-              </Link>
-            </p>
-          </div>
-        </div>
+    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black p-4">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <LinearParticles />
+        <div className="absolute -left-[10%] -top-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/20 blur-[100px]" />
+        <div className="absolute -bottom-[10%] -right-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/10 blur-[100px]" />
       </div>
 
-      {/* Particle Animation Section - Right */}
-      <div className="hidden md:flex flex-1 items-center justify-center relative overflow-hidden border-l border-gray-100/50 bg-linear-to-br from-gray-50 via-white to-blue-50/30">
-        <ParticleAnimation />
+      {/* Glass Card */}
+      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="h-6 w-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white">Create Account</h1>
+          <p className="mt-2 text-sm text-gray-400">
+            Enter your details to get started
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+          {/* Email Input */}
+          <div className="group relative">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              placeholder=" "
+              onBlur={(e) => handleBlur("email", e.target.value)}
+              onChange={(e) => handleChange("email", e.target.value)}
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.email && touched.email
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
+            />
+            <label
+              htmlFor="email"
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.email && touched.email
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
+            >
+              Email address
+            </label>
+            {errors.email && touched.email && (
+              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Password Input */}
+          <div className="group relative">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              placeholder=" "
+              onBlur={(e) => handleBlur("password", e.target.value)}
+              onChange={(e) => handleChange("password", e.target.value)}
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.password && touched.password
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
+            />
+            <label
+              htmlFor="password"
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.password && touched.password
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
+            >
+              Password
+            </label>
+            {errors.password && touched.password && (
+              <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Confirm Password Input */}
+          <div className="group relative">
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              placeholder=" "
+              onBlur={(e) =>
+                handleBlur(
+                  "confirmPassword",
+                  e.target.value,
+                  e.target.form || undefined
+                )
+              }
+              onChange={(e) =>
+                handleChange(
+                  "confirmPassword",
+                  e.target.value,
+                  e.target.form || undefined
+                )
+              }
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.confirmPassword && touched.confirmPassword
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
+            />
+            <label
+              htmlFor="confirmPassword"
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.confirmPassword && touched.confirmPassword
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
+            >
+              Confirm Password
+            </label>
+            {errors.confirmPassword && touched.confirmPassword && (
+              <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-[rgb(18,135,173)]! hover:bg-[rgb(15,115,148)]! hover:shadow-[0_0_20px_rgba(18,135,173,0.3)] border-none"
+            fullWidth
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Creating Account...
+              </span>
+            ) : (
+              "Create Account"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-8 text-center text-sm text-gray-400">
+          Already have an account?{" "}
+          <Link
+            href="/user/signin"
+            className="font-semibold text-[rgb(18,135,173)] hover:text-[rgb(22,160,205)] hover:underline"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </div>
   );
