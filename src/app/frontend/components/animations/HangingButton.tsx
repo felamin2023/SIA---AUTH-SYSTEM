@@ -18,14 +18,15 @@ export default function HangingButton({
 }: HangingButtonProps) {
   const [angle, setAngle] = useState(0);
   const [velocity, setVelocity] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const ropeRef = useRef<SVGSVGElement>(null);
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef(0);
 
-  // Physics constants
-  const gravity = 0.5;
-  const damping = 0.98;
-  const friction = 0.99;
+  // Physics constants - gentle movement
+  const gravity = 0.35;
+  const damping = 0.97;
+  const friction = 0.98;
+  const maxAngle = 20; // Limit maximum swing angle
 
   useEffect(() => {
     const animate = (currentTime: number) => {
@@ -46,7 +47,9 @@ export default function HangingButton({
       });
 
       setAngle((prev) => {
-        const newAngle = (prev + velocity * deltaTime) * friction;
+        let newAngle = (prev + velocity * deltaTime) * friction;
+        // Clamp angle to prevent excessive swinging
+        newAngle = Math.max(-maxAngle, Math.min(maxAngle, newAngle));
         return Math.abs(newAngle) < 0.01 && Math.abs(velocity) < 0.001
           ? 0
           : newAngle;
@@ -62,23 +65,27 @@ export default function HangingButton({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [angle, velocity, gravity, damping, ropeLength]);
+  }, [angle, velocity, gravity, damping, ropeLength, maxAngle]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+  const handleRopeMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!ropeRef.current) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
+    const rect = ropeRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const mouseX = e.clientX;
     const distance = mouseX - centerX;
 
-    // Apply force based on mouse position relative to center
-    const force = (distance / rect.width) * 8;
-    setVelocity((prev) => prev + force * 0.3);
+    // Apply gentle force based on mouse position
+    const force = (distance / 40) * 0.8;
+    setVelocity((prev) => {
+      const newVel = prev + force;
+      // Limit velocity to prevent wild swinging
+      return Math.max(-3, Math.min(3, newVel));
+    });
   };
 
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = containerRef.current?.getBoundingClientRect();
+  const handleRopeMouseEnter = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = ropeRef.current?.getBoundingClientRect();
     if (!rect) return;
 
     const centerX = rect.left + rect.width / 2;
@@ -86,7 +93,10 @@ export default function HangingButton({
     const direction = mouseX > centerX ? 1 : -1;
 
     // Give initial push
-    setVelocity((prev) => prev + direction * 3);
+    setVelocity((prev) => {
+      const newVel = prev + direction * 1.5;
+      return Math.max(-3, Math.min(3, newVel));
+    });
   };
 
   const buttonStyles = {
@@ -98,70 +108,72 @@ export default function HangingButton({
 
   return (
     <div
-      ref={containerRef}
-      className="relative flex flex-col items-center cursor-pointer w-48"
-      onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
-      style={{ height: ropeLength + 60 }}
+      className="relative flex flex-col items-center w-48"
+      style={{ height: ropeLength + 80 }}
     >
-      {/* Rope */}
-      <svg
-        className="absolute top-0 left-1/2 -translate-x-1/2 overflow-visible"
-        width="4"
-        height={ropeLength}
+      {/* Swinging container - rope and button rotate together */}
+      <div
+        className="absolute top-0 left-1/2 flex flex-col items-center"
         style={{
           transform: `translateX(-50%) rotate(${angle}deg)`,
           transformOrigin: "top center",
         }}
       >
-        {/* Rope gradient for 3D effect */}
-        <defs>
-          <linearGradient id="ropeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#8B7355" />
-            <stop offset="50%" stopColor="#D4A574" />
-            <stop offset="100%" stopColor="#8B7355" />
-          </linearGradient>
-        </defs>
-        {/* Main rope */}
-        <line
-          x1="2"
-          y1="0"
-          x2="2"
-          y2={ropeLength}
-          stroke="url(#ropeGradient)"
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-        {/* Rope texture lines */}
-        {Array.from({ length: Math.floor(ropeLength / 8) }).map((_, i) => (
+        {/* Rope - only this element responds to mouse */}
+        <svg
+          ref={ropeRef}
+          className="overflow-visible cursor-pointer"
+          width="20"
+          height={ropeLength}
+          onMouseMove={handleRopeMouseMove}
+          onMouseEnter={handleRopeMouseEnter}
+        >
+          {/* Rope gradient for 3D effect */}
+          <defs>
+            <linearGradient
+              id={`ropeGradient-${href}`}
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <stop offset="0%" stopColor="#8B7355" />
+              <stop offset="50%" stopColor="#D4A574" />
+              <stop offset="100%" stopColor="#8B7355" />
+            </linearGradient>
+          </defs>
+          {/* Main rope */}
           <line
-            key={i}
-            x1="0.5"
-            y1={i * 8 + 2}
-            x2="3.5"
-            y2={i * 8 + 6}
-            stroke="#6B5344"
-            strokeWidth="0.5"
-            opacity="0.5"
+            x1="10"
+            y1="0"
+            x2="10"
+            y2={ropeLength}
+            stroke={`url(#ropeGradient-${href})`}
+            strokeWidth="3"
+            strokeLinecap="round"
           />
-        ))}
-        {/* Knot at bottom */}
-        <circle cx="2" cy={ropeLength - 2} r="4" fill="#A08060" />
-        <circle cx="2" cy={ropeLength - 2} r="2.5" fill="#C4A070" />
-      </svg>
+          {/* Rope texture lines */}
+          {Array.from({ length: Math.floor(ropeLength / 8) }).map((_, i) => (
+            <line
+              key={i}
+              x1="8.5"
+              y1={i * 8 + 2}
+              x2="11.5"
+              y2={i * 8 + 6}
+              stroke="#6B5344"
+              strokeWidth="0.5"
+              opacity="0.5"
+            />
+          ))}
+          {/* Knot at bottom */}
+          <circle cx="10" cy={ropeLength - 2} r="4" fill="#A08060" />
+          <circle cx="10" cy={ropeLength - 2} r="2.5" fill="#C4A070" />
+        </svg>
 
-      {/* Button */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{
-          top: ropeLength,
-          transform: `translateX(-50%) rotate(${angle}deg)`,
-          transformOrigin: `center -${ropeLength}px`,
-        }}
-      >
+        {/* Button - attached directly below rope */}
         <Link
           href={href}
-          className={`block whitespace-nowrap rounded-lg px-6 py-3 text-center font-semibold transition-all ${buttonStyles[variant]}`}
+          className={`block whitespace-nowrap rounded-lg px-6 py-3 text-center font-semibold transition-colors ${buttonStyles[variant]}`}
         >
           {children}
         </Link>

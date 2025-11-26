@@ -16,7 +16,7 @@ export default function Home() {
       {/* Main Content - Two Column Layout */}
       <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Welcome Text */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-lg lg:pt-16">
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-lg lg:pt-5">
           <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
