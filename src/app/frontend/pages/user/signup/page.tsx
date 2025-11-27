@@ -3,15 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { auth } from "@/../firebaseconfig";
 import Button from "@/app/frontend/components/ui/Button";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [emailExistsToast, setEmailExistsToast] = useState(false);
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
     confirmPassword?: string;
+    firebase?: string;
   }>({});
   const [touched, setTouched] = useState<{
     email?: boolean;
@@ -121,15 +125,47 @@ export default function SignUpPage() {
     }
 
     setIsLoading(true);
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log("Sign up data:", Object.fromEntries(data.entries()));
+    try {
+      // Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created successfully:", userCredential.user.email);
 
-    // Set cookie
-    document.cookie = "isAuthenticated=true; path=/; max-age=86400";
-    router.push("/frontend/pages/user/dashboard");
-    setIsLoading(false);
+      // Send email verification
+      await sendEmailVerification(userCredential.user);
+      console.log("Verification email sent to:", email);
+
+      // Redirect to email confirmation page with email as query parameter
+      router.push(`/frontend/pages/user/emailconfirmation?email=${encodeURIComponent(email)}`);
+    } catch (error: unknown) {
+      // Handle Firebase Auth errors
+      let errorMessage = "An error occurred during sign up";
+
+      const firebaseError = error as { code?: string; message?: string };
+
+      switch (firebaseError.code) {
+        case "auth/email-already-in-use":
+          setEmailExistsToast(true);
+          // Auto-hide toast after 5 seconds
+          setTimeout(() => setEmailExistsToast(false), 5000);
+          return; // Don't set firebase error, show toast instead
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address";
+          break;
+        case "auth/operation-not-allowed":
+          errorMessage = "Email/password accounts are not enabled";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Password is too weak";
+          break;
+        default:
+          errorMessage = firebaseError.message || "An error occurred during sign up";
+      }
+
+      setErrors((prev) => ({ ...prev, firebase: errorMessage }));
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -164,8 +200,57 @@ export default function SignUpPage() {
           className="flex flex-col gap-5"
           noValidate
         >
+          {/* Firebase Error Display */}
+          {errors.firebase && (
+            <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-center text-sm text-red-500">
+              {errors.firebase}
+            </div>
+          )}
+
           {/* Email Input */}
           <div className="group relative">
+            {/* Email Exists Toast Notification */}
+            {emailExistsToast && (
+              <div className="absolute -top-12 left-0 right-0 z-10 animate-[slideDown_0.3s_ease-out] rounded-lg border border-red-500/50 bg-red-500/90 px-4 py-2 text-center text-sm font-medium text-white shadow-lg backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                    />
+                  </svg>
+                  This email is already registered
+                  <button
+                    type="button"
+                    onClick={() => setEmailExistsToast(false)}
+                    className="ml-2 rounded-full p-0.5 hover:bg-white/20"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="h-3 w-3"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
             <input
               id="email"
               name="email"
@@ -174,19 +259,17 @@ export default function SignUpPage() {
               placeholder=" "
               onBlur={(e) => handleBlur("email", e.target.value)}
               onChange={(e) => handleChange("email", e.target.value)}
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
-                errors.email && touched.email
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.email && touched.email
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                   : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-              }`}
+                }`}
             />
             <label
               htmlFor="email"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
-                errors.email && touched.email
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.email && touched.email
                   ? "text-red-500 peer-focus:text-red-500"
                   : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-              }`}
+                }`}
             >
               Email address
             </label>
@@ -205,19 +288,17 @@ export default function SignUpPage() {
               placeholder=" "
               onBlur={(e) => handleBlur("password", e.target.value)}
               onChange={(e) => handleChange("password", e.target.value)}
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
-                errors.password && touched.password
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.password && touched.password
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                   : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-              }`}
+                }`}
             />
             <label
               htmlFor="password"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
-                errors.password && touched.password
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.password && touched.password
                   ? "text-red-500 peer-focus:text-red-500"
                   : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-              }`}
+                }`}
             >
               Password
             </label>
@@ -248,19 +329,17 @@ export default function SignUpPage() {
                   e.target.form || undefined
                 )
               }
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
-                errors.confirmPassword && touched.confirmPassword
+              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.confirmPassword && touched.confirmPassword
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                   : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-              }`}
+                }`}
             />
             <label
               htmlFor="confirmPassword"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21] peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21] peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${
-                errors.confirmPassword && touched.confirmPassword
+              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.confirmPassword && touched.confirmPassword
                   ? "text-red-500 peer-focus:text-red-500"
                   : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-              }`}
+                }`}
             >
               Confirm Password
             </label>
