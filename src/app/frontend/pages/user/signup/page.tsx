@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import Button from "@/app/frontend/components/ui/Button";
-import LinearParticles from "@/app/frontend/components/animations/LinearParticles";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -134,16 +133,9 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black p-4">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <LinearParticles />
-        <div className="absolute -left-[10%] -top-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/20 blur-[100px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/10 blur-[100px]" />
-      </div>
-
+    <div className="flex min-h-screen w-full items-center justify-center p-4">
       {/* Glass Card */}
-      <div className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
             <svg
@@ -167,7 +159,11 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-5"
+          noValidate
+        >
           {/* Email Input */}
           <div className="group relative">
             <input
@@ -269,7 +265,9 @@ export default function SignUpPage() {
               Confirm Password
             </label>
             {errors.confirmPassword && touched.confirmPassword && (
-              <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
+              <p className="mt-1 text-xs text-red-500">
+                {errors.confirmPassword}
+              </p>
             )}
           </div>
 

@@ -1,18 +1,10 @@
 import Link from "next/link";
 import React from "react";
-import LinearParticles from "@/app/frontend/components/animations/LinearParticles";
 import HangingButton from "@/app/frontend/components/animations/HangingButton";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-black p-4">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <LinearParticles />
-        <div className="absolute -left-[10%] -top-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/20 blur-[100px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] h-[500px] w-[500px] rounded-full bg-[rgb(18,135,173)]/10 blur-[100px]" />
-      </div>
-
+    <div className="flex min-h-screen w-full items-center justify-center p-4">
       {/* Main Content - Two Column Layout */}
       <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Welcome Text */}

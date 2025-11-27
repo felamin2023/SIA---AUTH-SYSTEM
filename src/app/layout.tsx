@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import LinearParticles from "./frontend/components/animations/LinearParticles";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +26,246 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0a0a0f]`}
       >
-        {children}
+        {/* Background Effects - persists across page navigations */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <LinearParticles />
+          {/* Mesh gradient background */}
+          <div className="absolute inset-0 bg-linear-to-tr from-rose-500/10 via-transparent to-sky-500/10" />
+          <div className="absolute inset-0 bg-linear-to-bl from-amber-500/5 via-transparent to-violet-500/10" />
+          {/* Floating neon rings */}
+          {/* Orbit center for moon */}
+          <div className="absolute top-[25%] left-[25%]">
+            <div
+              className="relative h-[90px] w-[90px]"
+              style={{ animation: "orbit-moon 60s linear infinite" }}
+            >
+              {/* Subtle moon glow */}
+              <div className="absolute -inset-3 rounded-full bg-slate-400/5 blur-xl" />
+              {/* Moon body */}
+              <div
+                className="absolute inset-0 rounded-full overflow-hidden"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 35%, #d4d4d4 0%, #a8a8a8 20%, #888888 45%, #5a5a5a 70%, #2a2a2a 100%)",
+                }}
+              >
+                {/* Surface texture - lunar regolith */}
+                <div
+                  className="absolute inset-0 opacity-50 mix-blend-multiply"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='moon'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23moon)'/%3E%3C/svg%3E")`,
+                  }}
+                />
+                {/* Maria (dark basaltic plains) */}
+                <div
+                  className="absolute top-[10%] left-[15%] w-8 h-6 rounded-full bg-gray-600/50 blur-[2px]"
+                  style={{ transform: "rotate(-15deg)" }}
+                />
+                <div className="absolute top-[35%] left-[40%] w-6 h-5 rounded-full bg-gray-700/40 blur-[1px]" />
+                <div className="absolute top-[55%] left-[20%] w-5 h-4 rounded-full bg-gray-600/35 blur-[1px]" />
+                {/* Impact craters with proper rim lighting */}
+                <div
+                  className="absolute top-[18%] left-[55%] w-4 h-4 rounded-full"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 40% 40%, #999 0%, #666 50%, #444 100%)",
+                    boxShadow:
+                      "inset -1px -1px 2px rgba(255,255,255,0.15), inset 1px 1px 2px rgba(0,0,0,0.5)",
+                  }}
+                />
+                <div
+                  className="absolute top-[50%] left-[65%] w-3 h-3 rounded-full"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 40% 40%, #888 0%, #555 60%, #333 100%)",
+                    boxShadow:
+                      "inset -0.5px -0.5px 1px rgba(255,255,255,0.1), inset 0.5px 0.5px 1px rgba(0,0,0,0.4)",
+                  }}
+                />
+                <div
+                  className="absolute top-[70%] left-[45%] w-2 h-2 rounded-full"
+                  style={{
+                    background:
+                      "radial-gradient(circle at 40% 40%, #777 0%, #444 100%)",
+                    boxShadow: "inset 0.5px 0.5px 1px rgba(0,0,0,0.4)",
+                  }}
+                />
+                {/* Terminator - gradual day/night transition */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(100deg, transparent 35%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.75) 65%, rgba(0,0,0,0.95) 100%)",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Orbit center for sun */}
+          <div className="absolute bottom-[30%] right-[30%]">
+            <div
+              className="relative h-[120px] w-[120px]"
+              style={{ animation: "orbit-sun 90s linear infinite" }}
+            >
+              {/* Outer corona */}
+              <div
+                className="absolute -inset-12 rounded-full opacity-20"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(255,100,30,0.3) 0%, rgba(255,60,10,0.15) 40%, transparent 70%)",
+                }}
+              />
+              {/* Inner corona */}
+              <div
+                className="absolute -inset-6 rounded-full opacity-35"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(255,150,50,0.4) 0%, rgba(255,100,20,0.2) 50%, transparent 80%)",
+                }}
+              />
+              {/* Sun body */}
+              <div
+                className="absolute inset-0 rounded-full overflow-hidden"
+                style={{
+                  background:
+                    "radial-gradient(circle at 35% 35%, #fff0c0 0%, #ffcc50 8%, #ff9020 25%, #e86010 45%, #c04008 65%, #801800 85%, #500a00 100%)",
+                  boxShadow: "0 0 25px rgba(255,80,0,0.35)",
+                }}
+              >
+                {/* Limb darkening */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      "radial-gradient(circle, transparent 40%, rgba(150,40,0,0.25) 60%, rgba(80,15,0,0.5) 85%, rgba(40,5,0,0.7) 100%)",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Orbit center for planet */}
+          <div className="absolute top-[50%] left-[50%]">
+            <div
+              className="relative h-[100px] w-[100px]"
+              style={{ animation: "orbit-planet 120s linear infinite" }}
+            >
+              {/* Faint planet glow */}
+              <div className="absolute -inset-4 rounded-full bg-amber-900/5 blur-lg" />
+
+              {/* Ring system (BACK - behind planet) */}
+              <div
+                className="absolute top-1/2 left-1/2 w-[200px] h-[55px]"
+                style={{
+                  transform: "translate(-50%, -50%) rotateX(72deg)",
+                }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    clipPath: "polygon(0 0, 100% 0, 100% 50%, 0 50%)",
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse, transparent 23%, rgba(90,75,60,0.2) 25%, rgba(120,100,75,0.35) 28%, rgba(100,85,65,0.25) 32%, transparent 34%, rgba(130,110,85,0.3) 36%, rgba(150,125,95,0.4) 40%, rgba(120,100,75,0.3) 46%, rgba(90,75,55,0.2) 52%, transparent 58%)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Planet body */}
+              <div
+                className="absolute inset-0 rounded-full overflow-hidden z-10"
+                style={{
+                  background:
+                    "radial-gradient(circle at 38% 38%, #c9a868 0%, #a8884a 18%, #8a6a35 35%, #6b4f28 55%, #4a351a 75%, #2a1f10 100%)",
+                }}
+              >
+                {/* Surface texture */}
+                <div
+                  className="absolute inset-0 opacity-25 mix-blend-overlay"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 150 150' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E")`,
+                  }}
+                />
+                {/* Atmospheric bands - subtle */}
+                <div className="absolute top-[15%] left-0 right-0 h-2 bg-amber-600/15 blur-[1px]" />
+                <div className="absolute top-[28%] left-0 right-0 h-3 bg-yellow-700/10 blur-[2px]" />
+                <div className="absolute top-[45%] left-0 right-0 h-4 bg-orange-800/12 blur-[1px]" />
+                <div className="absolute top-[62%] left-0 right-0 h-2 bg-amber-700/10 blur-[1px]" />
+                <div className="absolute top-[78%] left-0 right-0 h-3 bg-yellow-800/15 blur-[2px]" />
+                {/* Polar darkening */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.2) 100%)",
+                  }}
+                />
+                {/* Terminator shadow */}
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(105deg, transparent 40%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.65) 70%, rgba(0,0,0,0.9) 100%)",
+                  }}
+                />
+              </div>
+
+              {/* Ring system (FRONT - in front of planet) */}
+              <div
+                className="absolute top-1/2 left-1/2 w-[200px] h-[55px] z-20"
+                style={{
+                  transform: "translate(-50%, -50%) rotateX(72deg)",
+                }}
+              >
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    clipPath: "polygon(0 50%, 100% 50%, 100% 100%, 0 100%)",
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse, transparent 23%, rgba(90,75,60,0.25) 25%, rgba(120,100,75,0.4) 28%, rgba(100,85,65,0.3) 32%, transparent 34%, rgba(130,110,85,0.35) 36%, rgba(150,125,95,0.45) 40%, rgba(120,100,75,0.35) 46%, rgba(90,75,55,0.25) 52%, transparent 58%)",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Ring shadow on planet */}
+              <div
+                className="absolute inset-0 rounded-full z-10 overflow-hidden"
+                style={{
+                  background:
+                    "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.12) 47%, rgba(0,0,0,0.08) 53%, transparent 60%)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Noise texture overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.015]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+            }}
+          />
+          {/* Gradient glow spots */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[400px] w-[600px] bg-linear-to-b from-indigo-600/20 to-transparent blur-[100px]" />
+          <div className="absolute bottom-0 left-0 h-[300px] w-[400px] bg-linear-to-tr from-rose-600/15 to-transparent blur-[80px]" />
+          <div className="absolute bottom-0 right-0 h-[300px] w-[400px] bg-linear-to-tl from-cyan-600/15 to-transparent blur-[80px]" />
+        </div>
+        {/* Page content */}
+        <div className="relative z-10">{children}</div>
       </body>
     </html>
   );

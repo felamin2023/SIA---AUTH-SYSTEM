@@ -17,3 +17,67 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Sun fire animations */
+@keyframes flicker {
+  0% {
+    opacity: 0.4;
+    transform: scale(1) translateX(-50%);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1) translateX(-50%);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(0.95) translateX(-50%);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0.7;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.3);
+  }
+}
+
+/* Orbital animations for celestial bodies */
+@keyframes orbit-moon {
+  0% {
+    transform: rotate(0deg) translateX(120px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(120px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-sun {
+  0% {
+    transform: rotate(0deg) translateX(150px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg) translateX(150px) rotate(360deg);
+  }
+}
+
+@keyframes orbit-planet {
+  0% {
+    transform: rotate(0deg) translateX(180px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(180px) rotate(-360deg);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
