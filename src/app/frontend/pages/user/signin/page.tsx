@@ -4,14 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/../firebaseconfig";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/../firebaseconfig";
 import Button from "@/app/frontend/components/ui/Button";
+import MFAVerifyModal from "@/app/frontend/components/MFAVerifyModal";
+import QRLoginModal from "@/app/frontend/components/QRLoginModal";
 
 export default function SignInPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showVerificationToast, setShowVerificationToast] = useState(false);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [showMFAModal, setShowMFAModal] = useState(false);
+  const [pendingUserUid, setPendingUserUid] = useState<string>("");
+  const [showQRLoginModal, setShowQRLoginModal] = useState(false);
+  const [qrLoginMFAData, setQrLoginMFAData] = useState<{ mfaEnabled: boolean; mfaSecret: string | null } | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,6 +45,19 @@ export default function SignInPage() {
         await auth.signOut();
         setIsLoading(false);
         return;
+      }
+
+      // Check if user has MFA enabled
+      const userDoc = await getDoc(doc(db, "user", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.mfaEnabled) {
+          // Show MFA verification modal
+          setPendingUserUid(user.uid);
+          setShowMFAModal(true);
+          setIsLoading(false);
+          return;
+        }
       }
 
       console.log("User signed in successfully:", user.email);
@@ -75,6 +95,46 @@ export default function SignInPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function handleMFASuccess() {
+    // MFA verification successful, proceed to dashboard
+    document.cookie = "isAuthenticated=true; path=/; max-age=86400";
+    setShowMFAModal(false);
+    router.push("/frontend/pages/user/dashboard");
+  }
+
+  function handleMFAClose() {
+    setShowMFAModal(false);
+    setPendingUserUid("");
+  }
+
+  // QR Login handlers
+  function handleQRLoginApproved(userId: string, mfaEnabled: boolean, mfaSecret: string | null) {
+    setShowQRLoginModal(false);
+    
+    if (mfaEnabled) {
+      // Store MFA data and show MFA verification
+      setQrLoginMFAData({ mfaEnabled, mfaSecret });
+      setPendingUserUid(userId);
+      setShowMFAModal(true);
+    } else {
+      // No MFA, proceed directly to dashboard
+      // Store user ID for QR login sessions (since Firebase Auth isn't used)
+      localStorage.setItem("qrLoginUserId", userId);
+      document.cookie = "isAuthenticated=true; path=/; max-age=86400";
+      router.push("/frontend/pages/user/dashboard");
+    }
+  }
+
+  function handleQRLoginMFASuccess() {
+    // MFA verification successful for QR login
+    // Store user ID for QR login sessions
+    localStorage.setItem("qrLoginUserId", pendingUserUid);
+    document.cookie = "isAuthenticated=true; path=/; max-age=86400";
+    setShowMFAModal(false);
+    setQrLoginMFAData(null);
+    router.push("/frontend/pages/user/dashboard");
   }
 
   return (
@@ -194,6 +254,7 @@ export default function SignInPage() {
           {/* Use QR Code Button */}
           <button
             type="button"
+            onClick={() => setShowQRLoginModal(true)}
             className="flex w-full items-center justify-center gap-3 rounded-lg border border-white/10 bg-white/5 py-3 font-medium text-white transition-all hover:bg-white/10 hover:border-white/20"
           >
             <svg
@@ -309,6 +370,22 @@ export default function SignInPage() {
           </Link>
         </div>
       </div>
+
+      {/* MFA Verification Modal */}
+      <MFAVerifyModal
+        isOpen={showMFAModal}
+        onClose={handleMFAClose}
+        onSuccess={qrLoginMFAData ? handleQRLoginMFASuccess : handleMFASuccess}
+        userUid={pendingUserUid}
+        mfaSecret={qrLoginMFAData?.mfaSecret}
+      />
+
+      {/* QR Login Modal */}
+      <QRLoginModal
+        isOpen={showQRLoginModal}
+        onClose={() => setShowQRLoginModal(false)}
+        onLoginApproved={handleQRLoginApproved}
+      />
     </div>
   );
 }

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { auth } from "@/../firebaseconfig";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/../firebaseconfig";
 import Button from "@/app/frontend/components/ui/Button";
 
 export default function SignUpPage() {
@@ -130,6 +131,14 @@ export default function SignUpPage() {
       // Create user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log("User created successfully:", userCredential.user.email);
+
+      // Store user data in Firestore
+      await setDoc(doc(db, "user", userCredential.user.uid), {
+        email: email,
+        createdAt: new Date().toISOString(),
+        uid: userCredential.user.uid,
+      });
+      console.log("User data stored in Firestore");
 
       // Send email verification
       await sendEmailVerification(userCredential.user);
@@ -260,15 +269,15 @@ export default function SignUpPage() {
               onBlur={(e) => handleBlur("email", e.target.value)}
               onChange={(e) => handleChange("email", e.target.value)}
               className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.email && touched.email
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
                 }`}
             />
             <label
               htmlFor="email"
               className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.email && touched.email
-                  ? "text-red-500 peer-focus:text-red-500"
-                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+                ? "text-red-500 peer-focus:text-red-500"
+                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
                 }`}
             >
               Email address
@@ -289,15 +298,15 @@ export default function SignUpPage() {
               onBlur={(e) => handleBlur("password", e.target.value)}
               onChange={(e) => handleChange("password", e.target.value)}
               className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.password && touched.password
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
                 }`}
             />
             <label
               htmlFor="password"
               className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.password && touched.password
-                  ? "text-red-500 peer-focus:text-red-500"
-                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+                ? "text-red-500 peer-focus:text-red-500"
+                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
                 }`}
             >
               Password
@@ -330,15 +339,15 @@ export default function SignUpPage() {
                 )
               }
               className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.confirmPassword && touched.confirmPassword
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
                 }`}
             />
             <label
               htmlFor="confirmPassword"
               className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.confirmPassword && touched.confirmPassword
-                  ? "text-red-500 peer-focus:text-red-500"
-                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+                ? "text-red-500 peer-focus:text-red-500"
+                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
                 }`}
             >
               Confirm Password
