@@ -16,7 +16,7 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    "rounded-full px-6 py-4 font-semibold tracking-wide transform active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3 cursor-pointer";
+    "rounded-full px-4 py-2 sm:px-6 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide transform active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3 cursor-pointer";
 
   const variantStyles = {
     primary:

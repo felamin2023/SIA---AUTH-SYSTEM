@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import * as OTPAuth from "otpauth";
 import QRCode from "qrcode";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -154,7 +155,7 @@ export default function MFASetupModal({
                     <div className="mb-4 flex justify-center">
                         <div className="rounded-xl bg-white p-3">
                             {totpData?.qrCodeUrl ? (
-                                <img src={totpData.qrCodeUrl} alt="QR Code for 2FA" width={192} height={192} className="h-48 w-48" />
+                                <Image src={totpData.qrCodeUrl} alt="QR Code for 2FA" width={192} height={192} className="h-48 w-48" unoptimized />
                             ) : (
                                 <div className="flex h-48 w-48 items-center justify-center">
                                     <svg className="h-8 w-8 animate-spin text-gray-400" viewBox="0 0 24 24">

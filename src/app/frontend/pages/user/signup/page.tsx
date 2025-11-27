@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/../firebaseconfig";
 import Button from "@/app/frontend/components/ui/Button";
@@ -23,6 +26,8 @@ export default function SignUpPage() {
     password?: boolean;
     confirmPassword?: boolean;
   }>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   function validateEmail(email: string): string | undefined {
     if (!email) {
@@ -38,8 +43,20 @@ export default function SignUpPage() {
     if (!password) {
       return "Password is required";
     }
-    if (password.length < 6) {
-      return "Password must be at least 6 characters";
+    if (password.length < 8) {
+      return "Password must be at least 8 characters";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      return "Password must contain at least one special character";
     }
     return undefined;
   }
@@ -82,18 +99,19 @@ export default function SignUpPage() {
     value: string,
     form?: HTMLFormElement
   ) {
-    if (touched[field]) {
-      if (field === "email") {
-        setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
-      } else if (field === "password") {
-        setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
-      } else if (field === "confirmPassword" && form) {
-        const password = new FormData(form).get("password") as string;
-        setErrors((prev) => ({
-          ...prev,
-          confirmPassword: validateConfirmPassword(password, value),
-        }));
-      }
+    // Set touched immediately on first change
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+    if (field === "email") {
+      setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    } else if (field === "password") {
+      setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    } else if (field === "confirmPassword" && form) {
+      const password = new FormData(form).get("password") as string;
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: validateConfirmPassword(password, value),
+      }));
     }
   }
 
@@ -129,7 +147,11 @@ export default function SignUpPage() {
 
     try {
       // Create user with Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       console.log("User created successfully:", userCredential.user.email);
 
       // Store user data in Firestore
@@ -145,7 +167,11 @@ export default function SignUpPage() {
       console.log("Verification email sent to:", email);
 
       // Redirect to email confirmation page with email as query parameter
-      router.push(`/frontend/pages/user/emailconfirmation?email=${encodeURIComponent(email)}`);
+      router.push(
+        `/frontend/pages/user/emailconfirmation?email=${encodeURIComponent(
+          email
+        )}`
+      );
     } catch (error: unknown) {
       // Handle Firebase Auth errors
       let errorMessage = "An error occurred during sign up";
@@ -168,7 +194,8 @@ export default function SignUpPage() {
           errorMessage = "Password is too weak";
           break;
         default:
-          errorMessage = firebaseError.message || "An error occurred during sign up";
+          errorMessage =
+            firebaseError.message || "An error occurred during sign up";
       }
 
       setErrors((prev) => ({ ...prev, firebase: errorMessage }));
@@ -178,18 +205,18 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-4">
+    <div className="flex min-h-screen w-full items-center justify-center p-10 sm:p-4">
       {/* Glass Card */}
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
+      <div className="relative w-full max-w-xs sm:max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-white/5 px-5 py-5 sm:px-8 sm:py-6 shadow-2xl backdrop-blur-xl">
+        <div className="mb-5 sm:mb-8 text-center">
+          <div className="mx-auto mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="h-6 w-6"
+              className="h-5 w-5 sm:h-6 sm:w-6"
             >
               <path
                 strokeLinecap="round"
@@ -198,20 +225,22 @@ export default function SignUpPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="mt-2 text-sm text-gray-400">
+          <h1 className="text-xl sm:text-2xl font-bold text-white">
+            Create Account
+          </h1>
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-400">
             Enter your details to get started
           </p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-3 sm:gap-5"
           noValidate
         >
           {/* Firebase Error Display */}
           {errors.firebase && (
-            <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-center text-sm text-red-500">
+            <div className="rounded-lg border border-red-500/50 bg-red-500/10 p-2 sm:p-3 text-center text-xs sm:text-sm text-red-500">
               {errors.firebase}
             </div>
           )}
@@ -220,15 +249,15 @@ export default function SignUpPage() {
           <div className="group relative">
             {/* Email Exists Toast Notification */}
             {emailExistsToast && (
-              <div className="absolute -top-12 left-0 right-0 z-10 animate-[slideDown_0.3s_ease-out] rounded-lg border border-red-500/50 bg-red-500/90 px-4 py-2 text-center text-sm font-medium text-white shadow-lg backdrop-blur-sm">
-                <div className="flex items-center justify-center gap-2">
+              <div className="absolute -top-12 left-0 right-0 z-10 animate-[slideDown_0.3s_ease-out] rounded-lg border border-red-500/50 bg-red-500/90 px-3 py-1.5 sm:px-4 sm:py-2 text-center text-xs sm:text-sm font-medium text-white shadow-lg backdrop-blur-sm">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={2}
                     stroke="currentColor"
-                    className="h-4 w-4"
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   >
                     <path
                       strokeLinecap="round"
@@ -268,17 +297,19 @@ export default function SignUpPage() {
               placeholder=" "
               onBlur={(e) => handleBlur("email", e.target.value)}
               onChange={(e) => handleChange("email", e.target.value)}
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.email && touched.email
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-                }`}
+              className={`peer w-full rounded-lg border bg-white/5 px-3 py-1.5 sm:px-4 sm:py-3 text-xs sm:text-sm text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.email && touched.email
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
             />
             <label
               htmlFor="email"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.email && touched.email
-                ? "text-red-500 peer-focus:text-red-500"
-                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-                }`}
+              className={`pointer-events-none absolute left-3 sm:left-4 top-1.5 sm:top-3 text-xs sm:text-sm transition-all peer-focus:-top-2 sm:peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-[10px] sm:peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2 sm:peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-[10px] sm:peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.email && touched.email
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
             >
               Email address
             </label>
@@ -292,22 +323,66 @@ export default function SignUpPage() {
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               placeholder=" "
               onBlur={(e) => handleBlur("password", e.target.value)}
               onChange={(e) => handleChange("password", e.target.value)}
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.password && touched.password
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-                }`}
+              className={`peer w-full rounded-lg border bg-white/5 px-3 py-1.5 sm:px-4 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.password && touched.password
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2.5 sm:right-3 top-1.5 sm:top-[14px] text-gray-400 hover:text-white transition-colors"
+            >
+              {showPassword ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              )}
+            </button>
             <label
               htmlFor="password"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.password && touched.password
-                ? "text-red-500 peer-focus:text-red-500"
-                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-                }`}
+              className={`pointer-events-none absolute left-3 sm:left-4 top-1.5 sm:top-3 text-xs sm:text-sm transition-all peer-focus:-top-2 sm:peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-[10px] sm:peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2 sm:peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-[10px] sm:peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.password && touched.password
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
             >
               Password
             </label>
@@ -321,7 +396,7 @@ export default function SignUpPage() {
             <input
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               required
               placeholder=" "
               onBlur={(e) =>
@@ -338,17 +413,61 @@ export default function SignUpPage() {
                   e.target.form || undefined
                 )
               }
-              className={`peer w-full rounded-lg border bg-white/5 px-4 py-3 text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${errors.confirmPassword && touched.confirmPassword
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
-                }`}
+              className={`peer w-full rounded-lg border bg-white/5 px-3 py-1.5 sm:px-4 sm:py-3 pr-10 sm:pr-12 text-xs sm:text-sm text-white outline-none transition-all focus:bg-white/10 focus:ring-1 ${
+                errors.confirmPassword && touched.confirmPassword
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-white/10 focus:border-[rgb(18,135,173)] focus:ring-[rgb(18,135,173)]"
+              }`}
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-2.5 sm:right-3 top-1.5 sm:top-[14px] text-gray-400 hover:text-white transition-colors"
+            >
+              {showConfirmPassword ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="h-4 w-4 sm:h-5 sm:w-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              )}
+            </button>
             <label
               htmlFor="confirmPassword"
-              className={`pointer-events-none absolute left-4 top-3 transition-all peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-xs ${errors.confirmPassword && touched.confirmPassword
-                ? "text-red-500 peer-focus:text-red-500"
-                : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
-                }`}
+              className={`pointer-events-none absolute left-3 sm:left-4 top-1.5 sm:top-3 text-xs sm:text-sm transition-all peer-focus:-top-2 sm:peer-focus:-top-2.5 peer-focus:bg-[#1a1d21]/90 peer-focus:backdrop-blur-md peer-focus:px-1 peer-focus:text-[10px] sm:peer-focus:text-xs peer-[:not(:placeholder-shown)]:-top-2 sm:peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:bg-[#1a1d21]/90 peer-[:not(:placeholder-shown)]:backdrop-blur-md peer-[:not(:placeholder-shown)]:px-1 peer-[:not(:placeholder-shown)]:text-[10px] sm:peer-[:not(:placeholder-shown)]:text-xs ${
+                errors.confirmPassword && touched.confirmPassword
+                  ? "text-red-500 peer-focus:text-red-500"
+                  : "text-gray-400 peer-focus:text-[rgb(18,135,173)]"
+              }`}
             >
               Confirm Password
             </label>
@@ -366,8 +485,11 @@ export default function SignUpPage() {
             fullWidth
           >
             {isLoading ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+              <span className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                <svg
+                  className="h-4 w-4 sm:h-5 sm:w-5 animate-spin"
+                  viewBox="0 0 24 24"
+                >
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -391,7 +513,7 @@ export default function SignUpPage() {
           </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-gray-400">
+        <div className="mt-3 sm:mt-8 text-center text-[10px] sm:text-sm text-gray-400">
           Already have an account?{" "}
           <Link
             href="/user/signin"

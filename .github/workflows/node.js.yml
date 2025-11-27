@@ -1,5 +1,6 @@
 # CI/CD Pipeline for SIA Auth System
 # Runs on every push and pull request to main branch
+# Deployment is handled automatically by Vercel
 
 name: CI/CD Pipeline
 
@@ -104,15 +105,28 @@ jobs:
 
       - name: Build Next.js application
         run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+  # Job 5: Deploy to Vercel
+  deploy:
+    name: 🚀 Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
         with:
-          name: next-build
-          path: .next/
-          retention-days: 7
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
 
-  # Job 5: Security audit
+  # Job 6: Security audit
   security:
     name: 🔒 Security Audit
     runs-on: ubuntu-latest

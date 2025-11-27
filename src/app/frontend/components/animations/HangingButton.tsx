@@ -173,7 +173,7 @@ export default function HangingButton({
         {/* Button - attached directly below rope */}
         <Link
           href={href}
-          className={`block whitespace-nowrap rounded-lg px-6 py-3 text-center font-semibold transition-colors ${buttonStyles[variant]}`}
+          className={`block whitespace-nowrap rounded-lg px-4 py-2 sm:px-6 sm:py-3 text-xs sm:text-base text-center font-semibold transition-colors ${buttonStyles[variant]}`}
         >
           {children}
         </Link>

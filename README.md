@@ -4,7 +4,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 First, paste this command to your terminal
 npm install
-
+npm install firebase
 Second, run the development server:
 
 ```bash

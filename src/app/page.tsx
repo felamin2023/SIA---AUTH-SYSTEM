@@ -4,19 +4,19 @@ import HangingButton from "@/app/frontend/components/animations/HangingButton";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center p-4">
+    <div className="flex min-h-screen w-full items-center justify-center p-10 sm:p-4">
       {/* Main Content - Two Column Layout */}
-      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-12 lg:flex-row lg:items-start lg:justify-between">
+      <div className="relative z-10 flex w-full max-w-5xl flex-col items-center gap-8 sm:gap-12 lg:flex-row lg:items-start lg:justify-between">
         {/* Left Side - Welcome Text */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-lg lg:pt-5">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
+          <div className="mb-4 sm:mb-6 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-[rgb(18,135,173)]/20 text-[rgb(18,135,173)]">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="h-8 w-8"
+              className="h-6 w-6 sm:h-8 sm:w-8"
             >
               <path
                 strokeLinecap="round"
@@ -26,19 +26,21 @@ export default function Home() {
             </svg>
           </div>
 
-          <h1 className="text-5xl font-bold text-white lg:text-6xl">SIA</h1>
-          <h2 className="mt-2 text-2xl font-semibold text-[rgb(18,135,173)] lg:text-3xl">
+          <h1 className="text-3xl sm:text-5xl font-bold text-white lg:text-6xl">
+            SIA
+          </h1>
+          <h2 className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-semibold text-[rgb(18,135,173)] lg:text-3xl">
             Auth System
           </h2>
 
-          <p className="mt-6 text-lg text-gray-400 leading-relaxed max-w-md">
+          <p className="mt-4 sm:mt-6 text-sm sm:text-lg text-gray-400 leading-relaxed max-w-md">
             Welcome to the Secure Identity Authentication System. Experience
             seamless and protected access to your account with our
             state-of-the-art security features. Your privacy and data protection
             are our top priorities.
           </p>
 
-          <div className="mt-8 text-sm text-gray-500">
+          <div className="mt-5 sm:mt-8 text-[10px] sm:text-sm text-gray-500">
             By continuing, you agree to our{" "}
             <Link
               href="#"
@@ -57,10 +59,10 @@ export default function Home() {
         </div>
 
         {/* Right Side - Hanging Buttons */}
-        <div className="relative flex items-start justify-center gap-16 pt-4">
+        <div className="relative flex items-start justify-center gap-10 sm:gap-16 pt-4">
           {/* Ceiling bar */}
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-[320px] h-3 bg-gradient-to-b from-zinc-600 to-zinc-800 rounded-full shadow-lg" />
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-[300px] h-1 bg-zinc-500 rounded-full opacity-50" />
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-[240px] sm:w-[320px] h-2 sm:h-3 bg-gradient-to-b from-zinc-600 to-zinc-800 rounded-full shadow-lg" />
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-[220px] sm:w-[300px] h-0.5 sm:h-1 bg-zinc-500 rounded-full opacity-50" />
 
           <HangingButton href="/user/signin" variant="primary" ropeLength={100}>
             Sign In

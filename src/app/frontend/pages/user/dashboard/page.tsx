@@ -22,7 +22,8 @@ export default function DashboardPage() {
   const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
   const [isMFASetupOpen, setIsMFASetupOpen] = useState(false);
   const [isLoadingMFA, setIsLoadingMFA] = useState(true);
-  const [pendingLoginRequest, setPendingLoginRequest] = useState<LoginRequest | null>(null);
+  const [pendingLoginRequest, setPendingLoginRequest] =
+    useState<LoginRequest | null>(null);
   const [showLoginConfirm, setShowLoginConfirm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -32,7 +33,7 @@ export default function DashboardPage() {
       try {
         const userDocRef = doc(db, "user", userId);
         const userDocSnap = await getDoc(userDocRef);
-        
+
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
           const mfaStatus = userData.mfaEnabled === true;
@@ -72,7 +73,9 @@ export default function DashboardPage() {
       const data = JSON.parse(result);
       if (data.type === "qr_login" && data.sessionId) {
         // Check if the login request exists and is pending
-        const requestDoc = await getDoc(doc(db, "loginRequests", data.sessionId));
+        const requestDoc = await getDoc(
+          doc(db, "loginRequests", data.sessionId)
+        );
         if (requestDoc.exists()) {
           const requestData = requestDoc.data();
           if (requestData.status === "pending") {
@@ -134,15 +137,17 @@ export default function DashboardPage() {
     <div className="min-h-screen">
       {/* Top Navigation Header */}
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/5 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-bold text-white">Dashboard</h1>
+        <div className="mx-auto flex py-4 h-fit sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-8">
+          <h1 className="text-base sm:text-xl font-bold text-white">
+            Dashboard
+          </h1>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {/* Profile Section */}
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
                 <svg
-                  className="h-6 w-6 text-white"
+                  className="h-4 w-4 sm:h-6 sm:w-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -163,7 +168,7 @@ export default function DashboardPage() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
+              className="rounded-lg bg-red-500/10 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20 hover:text-red-300"
             >
               Sign Out
             </button>
@@ -172,19 +177,23 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white">Authentication Settings</h2>
-          <p className="mt-1 text-zinc-400">Manage your authentication methods and security preferences.</p>
+      <main className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-8 lg:px-8">
+        <div className="mb-5 sm:mb-8">
+          <h2 className="text-lg sm:text-2xl font-bold text-white">
+            Authentication Settings
+          </h2>
+          <p className="mt-1 text-xs sm:text-base text-zinc-400">
+            Manage your authentication methods and security preferences.
+          </p>
         </div>
 
         {/* Cards Grid */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           {/* QR Authentication Card */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10">
+            <div className="mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-blue-500/10">
               <svg
-                className="h-6 w-6 text-blue-400"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -197,16 +206,19 @@ export default function DashboardPage() {
                 />
               </svg>
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-white">QR Authentication</h3>
-            <p className="mb-6 text-sm text-zinc-400">
-              Scan the QR code with your authenticator app to enable quick and secure login.
+            <h3 className="mb-1.5 sm:mb-2 text-base sm:text-lg font-semibold text-white">
+              QR Authentication
+            </h3>
+            <p className="mb-4 sm:mb-6 text-xs sm:text-sm text-zinc-400">
+              Scan the QR code with your authenticator app to enable quick and
+              secure login.
             </p>
             <button
               onClick={() => setIsQRScannerOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-[rgb(18,135,173)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[rgb(22,160,205)] focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent"
+              className="inline-flex items-center gap-1.5 sm:gap-2 rounded-lg bg-[rgb(18,135,173)] px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-medium text-white transition-colors hover:bg-[rgb(22,160,205)] focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent"
             >
               <svg
-                className="h-5 w-5"
+                className="h-4 w-4 sm:h-5 sm:w-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -229,10 +241,10 @@ export default function DashboardPage() {
           </div>
 
           {/* MFA Card */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/10">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6 shadow-2xl backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/10">
+            <div className="mb-3 sm:mb-4 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-purple-500/10">
               <svg
-                className="h-6 w-6 text-purple-400"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -245,13 +257,20 @@ export default function DashboardPage() {
                 />
               </svg>
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-white">Multi-Factor Authentication</h3>
-            <p className="mb-6 text-sm text-zinc-400">
-              Add an extra layer of security by requiring a second form of verification.
+            <h3 className="mb-1.5 sm:mb-2 text-base sm:text-lg font-semibold text-white">
+              Multi-Factor Authentication
+            </h3>
+            <p className="mb-4 sm:mb-6 text-xs sm:text-sm text-zinc-400">
+              Add an extra layer of security by requiring a second form of
+              verification.
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-300">
-                {isLoadingMFA ? "Loading..." : mfaEnabled ? "Enabled" : "Disabled"}
+              <span className="text-xs sm:text-sm text-zinc-300">
+                {isLoadingMFA
+                  ? "Loading..."
+                  : mfaEnabled
+                  ? "Enabled"
+                  : "Disabled"}
               </span>
               {/* Toggle Switch */}
               <button
@@ -265,12 +284,14 @@ export default function DashboardPage() {
                     handleDisableMFA();
                   }
                 }}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 ${mfaEnabled ? "bg-[rgb(18,135,173)]" : "bg-white/20"
-                  }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 ${
+                  mfaEnabled ? "bg-[rgb(18,135,173)]" : "bg-white/20"
+                }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mfaEnabled ? "translate-x-6" : "translate-x-1"
-                    }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    mfaEnabled ? "translate-x-6" : "translate-x-1"
+                  }`}
                 />
               </button>
             </div>
