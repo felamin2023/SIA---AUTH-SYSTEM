@@ -1,13 +1,130 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "@/../firebaseconfig";
+import QRScannerModal from "@/app/frontend/components/QRScannerModal";
+import MFASetupModal from "@/app/frontend/components/MFASetupModal";
+import LoginConfirmModal from "@/app/frontend/components/LoginConfirmModal";
+
+interface LoginRequest {
+  sessionId: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
+  const [isMFASetupOpen, setIsMFASetupOpen] = useState(false);
+  const [isLoadingMFA, setIsLoadingMFA] = useState(true);
+  const [pendingLoginRequest, setPendingLoginRequest] = useState<LoginRequest | null>(null);
+  const [showLoginConfirm, setShowLoginConfirm] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Fetch MFA status from Firestore when auth state is ready or from QR login
+  useEffect(() => {
+    const fetchUserData = async (userId: string) => {
+      try {
+        const userDocRef = doc(db, "user", userId);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const mfaStatus = userData.mfaEnabled === true;
+          setMfaEnabled(mfaStatus);
+        }
+      } catch (err) {
+        console.error("Error fetching MFA status:", err);
+      }
+      setIsLoadingMFA(false);
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Regular Firebase Auth login
+        setCurrentUserId(user.uid);
+        // Clear any QR login data since we have a real auth session
+        localStorage.removeItem("qrLoginUserId");
+        await fetchUserData(user.uid);
+      } else {
+        // Check for QR login session
+        const qrLoginUserId = localStorage.getItem("qrLoginUserId");
+        if (qrLoginUserId) {
+          setCurrentUserId(qrLoginUserId);
+          await fetchUserData(qrLoginUserId);
+        } else {
+          setIsLoadingMFA(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Handle scanned QR code result - check for login requests
+  const handleQRScanResult = async (result: string) => {
+    try {
+      const data = JSON.parse(result);
+      if (data.type === "qr_login" && data.sessionId) {
+        // Check if the login request exists and is pending
+        const requestDoc = await getDoc(doc(db, "loginRequests", data.sessionId));
+        if (requestDoc.exists()) {
+          const requestData = requestDoc.data();
+          if (requestData.status === "pending") {
+            // Check if not expired
+            if (new Date(requestData.expiresAt) > new Date()) {
+              setPendingLoginRequest({
+                sessionId: data.sessionId,
+                status: requestData.status,
+                createdAt: requestData.createdAt,
+                expiresAt: requestData.expiresAt,
+              });
+              setIsQRScannerOpen(false);
+              setShowLoginConfirm(true);
+            } else {
+              // Request expired, delete it
+              await deleteDoc(doc(db, "loginRequests", data.sessionId));
+              console.log("Login request expired");
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Invalid QR code data:", err);
+    }
+  };
+
+  const handleLoginConfirmClose = () => {
+    setShowLoginConfirm(false);
+    setPendingLoginRequest(null);
+  };
+
+  async function handleDisableMFA() {
+    // Use Firebase Auth user or QR login user ID
+    const userId = auth.currentUser?.uid || currentUserId;
+    if (userId) {
+      try {
+        await updateDoc(doc(db, "user", userId), {
+          mfaEnabled: false,
+          mfaSecret: null,
+        });
+        setMfaEnabled(false);
+        console.log("MFA disabled");
+      } catch (err) {
+        console.error("Error disabling MFA:", err);
+      }
+    }
+  }
 
   function handleLogout() {
+    auth.signOut();
+    // Clear QR login session data
+    localStorage.removeItem("qrLoginUserId");
     document.cookie =
       "isAuthenticated=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     router.push("/user/signin");
@@ -19,7 +136,7 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/5 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <h1 className="text-xl font-bold text-white">Dashboard</h1>
-          
+
           <div className="flex items-center gap-4">
             {/* Profile Section */}
             <div className="flex items-center gap-3">
@@ -84,7 +201,10 @@ export default function DashboardPage() {
             <p className="mb-6 text-sm text-zinc-400">
               Scan the QR code with your authenticator app to enable quick and secure login.
             </p>
-            <button className="inline-flex items-center gap-2 rounded-lg bg-[rgb(18,135,173)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[rgb(22,160,205)] focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent">
+            <button
+              onClick={() => setIsQRScannerOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-[rgb(18,135,173)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[rgb(22,160,205)] focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent"
+            >
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -131,25 +251,56 @@ export default function DashboardPage() {
             </p>
             <div className="flex items-center justify-between">
               <span className="text-sm text-zinc-300">
-                {mfaEnabled ? "Enabled" : "Disabled"}
+                {isLoadingMFA ? "Loading..." : mfaEnabled ? "Enabled" : "Disabled"}
               </span>
               {/* Toggle Switch */}
               <button
-                onClick={() => setMfaEnabled(!mfaEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent ${
-                  mfaEnabled ? "bg-[rgb(18,135,173)]" : "bg-white/20"
-                }`}
+                disabled={isLoadingMFA}
+                onClick={() => {
+                  if (!mfaEnabled) {
+                    // Open MFA setup modal when enabling
+                    setIsMFASetupOpen(true);
+                  } else {
+                    // Disable MFA and remove from Firestore
+                    handleDisableMFA();
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(18,135,173)] focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 ${mfaEnabled ? "bg-[rgb(18,135,173)]" : "bg-white/20"
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    mfaEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mfaEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
                 />
               </button>
             </div>
           </div>
         </div>
       </main>
+
+      {/* QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={isQRScannerOpen}
+        onClose={() => setIsQRScannerOpen(false)}
+        onScan={handleQRScanResult}
+      />
+
+      {/* MFA Setup Modal */}
+      <MFASetupModal
+        isOpen={isMFASetupOpen}
+        onClose={() => setIsMFASetupOpen(false)}
+        onConfirm={() => {
+          setMfaEnabled(true);
+          setIsMFASetupOpen(false);
+        }}
+      />
+
+      {/* Login Confirm Modal */}
+      <LoginConfirmModal
+        isOpen={showLoginConfirm}
+        loginRequest={pendingLoginRequest}
+        onClose={handleLoginConfirmClose}
+      />
     </div>
   );
 }
